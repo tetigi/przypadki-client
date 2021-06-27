@@ -2,10 +2,14 @@ import kotlinx.browser.window
 import kotlinx.css.*
 import kotlinx.html.InputType
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.onKeyDownFunction
+import kotlinx.html.js.onKeyPressFunction
+import kotlinx.html.onKeyPress
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromDynamic
+import org.w3c.dom.events.KeyboardEvent
 import react.*
 import react.dom.*
 import styled.css
@@ -31,6 +35,14 @@ class Widget : RComponent<RProps, WidgetState>() {
                 val decoded = Json.decodeFromDynamic<ClientResponse>(json)
                 setState(WidgetState(false, decoded))
             }
+        }
+    }
+
+    fun progress() {
+        if (state.response == null || state.revealed) {
+            doThing()
+        } else {
+            setState(WidgetState(true, state.response))
         }
     }
 
@@ -76,13 +88,11 @@ class Widget : RComponent<RProps, WidgetState>() {
                         state.revealed -> "Next"
                         else -> "Reveal"
                     }
-                    onClickFunction = {
-                        if (state.response == null || state.revealed) {
-                            doThing()
-                        } else {
-                            setState(WidgetState(true, state.response))
-                        }
+                    onKeyDownFunction = {
+                        it.preventDefault()
+                        if (it.asDynamic().keyCode == 13) progress()
                     }
+                    onClickFunction = { it.preventDefault(); progress() }
                 }
             }
         }
